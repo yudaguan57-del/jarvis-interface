@@ -39,6 +39,7 @@ headers:{"Content-Type":"application/json"},
 body:JSON.stringify({message})
 });
 const data=await response.json();
+console.log("JARVIS API:", response.status, d
 messages.textContent=messages.textContent.replace("JARVIS：応答を確認しています...","JARVIS："+(data.reply||data.error||"応答できませんでした。"));
 }catch(error){
 messages.textContent=messages.textContent.replace("JARVIS：応答を確認しています...","JARVIS：接続できませんでした。");
