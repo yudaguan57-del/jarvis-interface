@@ -1,50 +1,150 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#06111f">
 <title>J.A.R.V.I.S.</title>
+
 <style>
-body{margin:0;background:#06111f;color:#d9faff;font-family:sans-serif;padding:25px}
-h1{text-align:center;color:#42e8ff;letter-spacing:5px}
-#messages{max-width:650px;min-height:300px;margin:30px auto;border:1px solid #1b8ba5;border-radius:12px;padding:16px;white-space:pre-wrap}
-form{max-width:650px;margin:auto;display:flex;gap:8px}
-input{flex:1;min-width:0;padding:14px;border-radius:8px;background:#102337;color:white;border:1px solid #42e8ff;font-size:16px}
-button{padding:12px;background:#087f9b;color:white;border:0;border-radius:8px}
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 24px 16px;
+  background: #06111f;
+  color: #d9faff;
+  font-family: sans-serif;
+}
+
+h1 {
+  text-align: center;
+  color: #42e8ff;
+  letter-spacing: 5px;
+}
+
+#messages {
+  max-width: 650px;
+  min-height: 300px;
+  margin: 30px auto;
+  padding: 16px;
+  border: 1px solid #1b8ba5;
+  border-radius: 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.7;
+}
+
+form {
+  max-width: 650px;
+  margin: auto;
+  display: flex;
+  gap: 8px;
+}
+
+input {
+  flex: 1;
+  min-width: 0;
+  padding: 14px;
+  border-radius: 8px;
+  background: #102337;
+  color: white;
+  border: 1px solid #42e8ff;
+  font-size: 16px;
+}
+
+button {
+  padding: 12px 18px;
+  background: #087f9b;
+  color: white;
+  border: 0;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+button:disabled {
+  opacity: 0.5;
+}
 </style>
 </head>
+
 <body>
+
 <h1>J.A.R.V.I.S.</h1>
+
 <div id="messages">JARVIS：お待ちしておりました。何なりとお申し付けください。</div>
+
 <form id="form">
-<input id="message" placeholder="メッセージを入力..." autocomplete="off">
-<button>送信</button>
+  <input
+    id="message"
+    type="text"
+    placeholder="メッセージを入力..."
+    autocomplete="off"
+    required
+  >
+  <button id="sendButton" type="submit">送信</button>
 </form>
+
 <script>
-const API_URL="https://jarvis-ai.yudaguan57.workers.dev";
-const messages=document.getElementById("messages");
-const form=document.getElementById("form");
-const input=document.getElementById("message");
-form.addEventListener("submit",async e=>{
-e.preventDefault();
-const message=input.value.trim();
-if(!message)return;
-messages.textContent+="\n\nあなた："+message;
-input.value="";
-messages.textContent+="\n\nJARVIS：応答を確認しています...";
-try{
-const response=await fetch(API_URL,{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({message})
-});
-const data=await response.json();
-console.log("JARVIS API:", response.status, d
-messages.textContent=messages.textContent.replace("JARVIS：応答を確認しています...","JARVIS："+(data.reply||data.error||"応答できませんでした。"));
-}catch(error){
-messages.textContent=messages.textContent.replace("JARVIS：応答を確認しています...","JARVIS：接続できませんでした。");
-}
+"use strict";
+
+const API_URL = "https://jarvis-ai.yudaguan57.workers.dev";
+
+const messages = document.getElementById("messages");
+const form = document.getElementById("form");
+const input = document.getElementById("message");
+const sendButton = document.getElementById("sendButton");
+
+form.addEventListener("submit", async function(event) {
+  event.preventDefault();
+
+  const message = input.value.trim();
+  if (!message) return;
+
+  messages.textContent += "\n\nあなた：" + message;
+  input.value = "";
+
+  messages.textContent += "\n\nJARVIS：応答を確認しています...";
+  sendButton.disabled = true;
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ message: message })
+    });
+
+    const data = await response.json();
+
+    console.log("JARVIS API:", response.status, data);
+
+    let reply = data.reply || data.error || data.details;
+
+    if (!reply) {
+      reply = "応答がありません。HTTPステータス：" + response.status;
+    }
+
+    messages.textContent = messages.textContent.replace(
+      "JARVIS：応答を確認しています...",
+      "JARVIS：" + reply
+    );
+
+  } catch (error) {
+    console.error("JARVIS ERROR:", error);
+
+    messages.textContent = messages.textContent.replace(
+      "JARVIS：応答を確認しています...",
+      "JARVIS：通信エラー：" + error.message
+    );
+
+  } finally {
+    sendButton.disabled = false;
+  }
 });
 </script>
+
 </body>
 </html>
